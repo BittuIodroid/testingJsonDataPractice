@@ -50,7 +50,7 @@ class _WeatherForecastState extends State<WeatherForecast> {
                case ConnectionState.done:
                  if (snapshot.hasError)
                    return Text('Error: ${snapshot.error}');
-                 return createPostList(context,snapshot);
+                 return createPostList(context,snapshot);       // Returning Post Data if no error is found
              }
              return null;
               },
@@ -60,47 +60,145 @@ class _WeatherForecastState extends State<WeatherForecast> {
   Widget createPostList(BuildContext context, AsyncSnapshot<PostModel> snapshot) {
     return ListView.builder(
       itemCount: snapshot.data.posts.length,
-        itemBuilder: (BuildContext context,int postIndex){
-            return Card(
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          //color: Colors.blue,
-                          borderRadius: BorderRadius.circular(13.9),
-                        ),
-                        child: Text("${snapshot.data.posts[postIndex].postId}"),
-                      ),
-                    ),
-                    title: Text(snapshot.data.posts[postIndex].name),
-                    subtitle: Text("${snapshot.data.posts[postIndex].post}"),
-                    trailing: Text("${snapshot.data.posts[postIndex].date}"),
-                    onTap: () {
+      itemBuilder: (BuildContext context,int postIndex){
+        return Stack(
+          children: <Widget>[
+            postListCard(snapshot.data.posts[postIndex], context),
+            Positioned(
+              top: 20.0,left: 10.0,
+                child: profileImage(snapshot.data.posts[postIndex].image))
+          ],
+        );
 
-                      //Going to the second page
-                      Navigator.push(context, MaterialPageRoute(
-                        builder: (context) => PostData(postDetail: snapshot.data.posts[postIndex].name,
-                          postDetailChecking: snapshot.data.posts[postIndex])
-                      ));
-                    },
 
-                    //onTap: ()=> debugPrint("${snapshot.data.posts[postIndex].dislike}"),
-                  )
-                );
+        
+        //            return Card(
+//                  child: ListTile(
+//                    leading: CircleAvatar(
+//                      child: Container(
+//                        decoration: BoxDecoration(
+//                          image: DecorationImage(
+//                            image: NetworkImage(snapshot.data.posts[postIndex].image),
+//                            fit: BoxFit.cover
+//                          ) ,
+//                          //color: Colors.blue,
+//                          borderRadius: BorderRadius.circular(13.9),
+//                        ),
+//                        //child: Text("${snapshot.data.posts[postIndex].postId}"),
+//                      ),
+//                    ),
+//                    title: Text(snapshot.data.posts[postIndex].name),
+//                    subtitle: Text("${snapshot.data.posts[postIndex].post}"),
+//                    trailing: Text("${snapshot.data.posts[postIndex].date}"),
+//                    onTap: () {
+//
+//                      //Going to the second page
+//                      Navigator.push(context, MaterialPageRoute(
+//                        builder: (context) => PostData(postDetail: snapshot.data.posts[postIndex].name,
+//                          postDetailChecking: snapshot.data.posts[postIndex])
+//                      ));
+//                    },
+//
+//                    //onTap: ()=> debugPrint("${snapshot.data.posts[postIndex].dislike}"),
+//                  )
+//                );
                 //Divider(color:Colors.white,height: 5.0,)
 
         },);
+  }
+
+
+
+
+  Widget postListCard(Post postAllData, BuildContext context){
+    return InkWell(
+      child: Container(
+        //height: MediaQuery.of(context).size.height/4,
+        width: MediaQuery.of(context).size.width,
+        height: 170,
+        child: Card(
+          color: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.only(left:90.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              crossAxisAlignment: CrossAxisAlignment.center,           //For data inside the Column
+              children: <Widget>[
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Text(postAllData.name,
+                        style: TextStyle(fontSize: 20.0,fontWeight: FontWeight.bold)),
+                      Text(postAllData.date),
+                    ],
+                  ),
+
+                Row(
+                    children: <Widget>[
+                      Flexible(child: Text(postAllData.post,
+                        style: TextStyle(fontSize: 15.0) ,))
+                    ],
+                  ),
+
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    Column(
+                      children: <Widget>[
+                        Icon(Icons.arrow_upward,color: Colors.red),
+                        Text("${postAllData.like}")
+
+                      ],
+                    ),
+                    Column(
+                      children: <Widget>[
+                        Icon(Icons.arrow_downward,color:Colors.black87),
+                        Text("${postAllData.dislike}")
+                      ],
+                    )
+
+                ],)
+
+              ],
+            ),
+          ),
+        ),
+      ),
+
+      onTap: (){
+       // Going to the second page
+        Navigator.push(context, MaterialPageRoute(
+          builder: (context) => PostListViewDetail(postDetail: postAllData)
+        ));
+      },
+    );
+  }
+
+
+  //Profile Image
+  Widget profileImage(String profileUrl){
+    return Container(
+      width: 70.0,
+      height: 70.0,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        image: DecorationImage(
+          image: NetworkImage(profileUrl),
+          fit: BoxFit.cover
+        )
+      ),
+    );
   }
 }
 
 
 
 //New route or Second Page
-class PostData extends StatelessWidget {
-  final String postDetail;
-  final Post postDetailChecking;
+class PostListViewDetail extends StatelessWidget {
+  final Post postDetail;
 
-  const PostData({Key key, this.postDetail,this.postDetailChecking}) : super(key: key);
+  const PostListViewDetail({Key key, this.postDetail}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -110,8 +208,7 @@ class PostData extends StatelessWidget {
       ),
       body: Container(
         child: ListTile(
-          title: Text("${this.postDetail}"),
-          subtitle: Text("${this.postDetailChecking.post}"),
+          title: Text("${this.postDetail.post}"),
 
         ),
 
